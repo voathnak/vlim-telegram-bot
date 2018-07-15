@@ -1,3 +1,4 @@
 .idea
 .env
 which-python.sh
+*.pyc
