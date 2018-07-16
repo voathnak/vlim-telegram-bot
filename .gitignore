@@ -2,3 +2,4 @@
 .env
 which-python.sh
 *.pyc
+vlim-bot.log

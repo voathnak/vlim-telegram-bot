@@ -3,6 +3,11 @@ import logging
 
 from telegram.error import NetworkError
 
+import bot
+
+logger = bot.get_logger("VLIM Bot")
+# logger.setLevel(logging.INFO)
+# logger.addHandler(logging.StreamHandler())
 
 def getUpdates():
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -24,7 +29,8 @@ def getUpdates():
     try:
         updates = bot.getUpdates()
     except NetworkError:
-        print "except NetworkError"
+        logger.error("except NetworkError")
+        bot.run()
 
     # print len(updates)
     # print([u.message.text for u in updates])

@@ -1,17 +1,50 @@
+# -*- coding: utf-8 -*-
+
+import sys
 import time
-from ai import AI
 from vlim_telegram import VLIMTelegram
-from datetime import date, datetime
-
-from telegram.ext import dispatcher
-
-
+from datetime import datetime
+import logging
 from telegram.error import (TelegramError, Unauthorized, BadRequest,
                             TimedOut, ChatMigrated, NetworkError)
 
+from logging.handlers import TimedRotatingFileHandler
 
 
-# class self():
+reload(sys)
+sys.setdefaultencoding('utf8')
+
+
+FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(message)s")
+LOG_FILE = "/Users/vlim/Projects/logs/vlim-bot.log"
+
+
+def get_console_handler():
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setFormatter(FORMATTER)
+    return console_handler
+
+
+def get_file_handler():
+    file_handler = TimedRotatingFileHandler(LOG_FILE, when='midnight')
+    file_handler.setFormatter(FORMATTER)
+    return file_handler
+
+
+def get_logger(logger_name):
+    logger = logging.getLogger(logger_name)
+    logger.setLevel(logging.INFO)  # better to have too much log than not enough
+    logger.addHandler(get_console_handler())
+    logger.addHandler(get_file_handler())
+    # with this pattern, it's rarely necessary to propagate the error up to parent
+    logger.propagate = False
+    return logger
+
+
+logger = get_logger("VLIM Bot")
+
+logger.info("Log Level INFO")
+print logger.handlers
 
 
 class Bot:
@@ -22,7 +55,6 @@ class Bot:
         self.startup_time = datetime.now()
         self.answered_message = []
         self.answered_question = []
-        self.ai = AI(self.startup_time)
         self.vlim_telegram = VLIMTelegram()
 
     def do_something(self):
@@ -32,16 +64,17 @@ class Bot:
     def run(self):
         while True:
             time.sleep(2)
-            print "current time: %s" % time.ctime()
+            # logger.info("## current time: %s" % time.ctime())
+            # print "current time: %s" % time.ctime()
             # getUpdates()
             self.action()
 
     def action(self):
         updates = self.vlim_telegram.getUpdates()
-        print "type of updates: %s" % type(updates)
-        print updates
+        # print "type of updates: %s" % type(updates)
+        # print updates
         if len(updates) > 0:
-            print "update length %s" % len(updates)
+            # logger.info("## update length %s" % len(updates))
             # print updates()[len(updates()) - 1]
 
             last_update = updates[-1]
@@ -56,10 +89,12 @@ class Bot:
             # print "[action] last update: %s" % last_update
             if last_message_date > self.startup_time and text not in self.answered_question:
                 # if self.last_display != text:
-                print "[action] last update: %s: %s" % (last_update.message.from_user.username, text)
+                # print "[action] last update: %s: %s" % (last_update.message.from_user.username, text)
+                logger.info("last update: %s: %s" % (last_update.message.from_user.username, text))
                 self.last_display = text
 
             # if self.last_answered != text:
+            logger.info("Answered_question: %s", self.answered_question)
             if last_message_date > self.startup_time and text not in self.answered_question:
 
                 # Greating
@@ -76,35 +111,34 @@ class Bot:
 
                 self.last_answered = text
 
-
-    def error_callback(bot, update, error):
+    def error_callback(self, bot, update, error):
+        logger.debug(update)
         try:
             raise error
         except Unauthorized:
-            print "except Unauthorized"
+            logger.info("except Unauthorized")
+            bot.run()
         # remove update.message.chat_id from conversation list
         except BadRequest:
-            print "except BadRequest"
-        # handle malformed requests - read more below!
+            logger.info("except BadRequest")
+            bot.run()
         except TimedOut:
-            print "except TimedOut"
+            logger.info("except TimedOut")
+            bot.run()
         # handle slow connection problems
         except NetworkError:
-            print "except NetworkError"
+            logger.info("except NetworkError")
+            bot.run()
         # handle other connection problems
         except ChatMigrated as e:
-            print "except ChatMigrated as e"
+            logger.info("except ChatMigrated as e: %s" % e)
+            bot.run()
         # the chat_id of a group has changed, use e.new_chat_id instead
         except TelegramError:
-            print "except TelegramError"
+            logger.info("except TelegramError")
+            bot.run()
 
-
-
-# handle all other telegram related errors
-
-# dispatcher.add_error_handler(error_callback)
 
 if __name__ == "__main__":
-    print "__name__: %s" % __name__
     bot = Bot()
     bot.run()
