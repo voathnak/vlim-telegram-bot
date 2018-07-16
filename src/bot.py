@@ -16,7 +16,7 @@ sys.setdefaultencoding('utf8')
 
 
 FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(message)s")
-LOG_FILE = "/Users/vlim/Projects/logs/vlim-bot.log"
+LOG_FILE = "vlim-bot.log"
 
 
 def get_console_handler():
