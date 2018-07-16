@@ -2,6 +2,7 @@
 
 import sys
 import time
+from csv_data import CSVData
 from vlim_telegram import VLIMTelegram
 from datetime import datetime
 import logging
@@ -10,10 +11,8 @@ from telegram.error import (TelegramError, Unauthorized, BadRequest,
 
 from logging.handlers import TimedRotatingFileHandler
 
-
 reload(sys)
 sys.setdefaultencoding('utf8')
-
 
 FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(message)s")
 LOG_FILE = "vlim-bot.log"
@@ -32,13 +31,13 @@ def get_file_handler():
 
 
 def get_logger(logger_name):
-    logger = logging.getLogger(logger_name)
-    logger.setLevel(logging.INFO)  # better to have too much log than not enough
-    logger.addHandler(get_console_handler())
-    logger.addHandler(get_file_handler())
+    _logger = logging.getLogger(logger_name)
+    _logger.setLevel(logging.INFO)  # better to have too much log than not enough
+    _logger.addHandler(get_console_handler())
+    _logger.addHandler(get_file_handler())
     # with this pattern, it's rarely necessary to propagate the error up to parent
-    logger.propagate = False
-    return logger
+    _logger.propagate = False
+    return _logger
 
 
 logger = get_logger("VLIM Bot")
@@ -54,88 +53,88 @@ class Bot:
         self.last_answered = ''
         self.startup_time = datetime.now()
         self.answered_message = []
+        self.answered_messages = []
+        self.answered_messages_ids = []
         self.answered_question = []
+        self.question = []
         self.vlim_telegram = VLIMTelegram()
-
-    def do_something(self):
-        with open("/tmp/current_time.txt", "w") as f:
-            f.write("The time is now " + time.ctime())
+        self.answered_messages_ids_data = CSVData('answered_messages_ids')
+        self.no_answered_questions = []
+        self.no_answered_questions_ids = []
+        self.no_answered_questions_data = CSVData('no_answered_messages')
+        self.updates = self.vlim_telegram.getUpdates()
+        self.answered_messages_ids_data.write(map(lambda x: x.message.message_id, self.updates))
+        self.answered_messages_ids = self.answered_messages_ids_data.read()
+        self.messages = []
 
     def run(self):
         while True:
-            time.sleep(2)
-            # logger.info("## current time: %s" % time.ctime())
-            # print "current time: %s" % time.ctime()
-            # getUpdates()
+            time.sleep(1)
             self.action()
 
     def action(self):
         updates = self.vlim_telegram.getUpdates()
-        # print "type of updates: %s" % type(updates)
-        # print updates
-        if len(updates) > 0:
-            # logger.info("## update length %s" % len(updates))
-            # print updates()[len(updates()) - 1]
-
-            last_update = updates[-1]
-            last_message_date = last_update.message.date
-            # print "last_message_date: %s" % last_message_date
-            # print "last_message_date type: %s" % type(last_message_date)
-            # print "startup_time: %s" % self.startup_time
-            # print "startup_time type: %s" % type(self.startup_time)
-
-            text = last_update.message.text
-            chat_id = last_update.message.chat.id
-            # print "[action] last update: %s" % last_update
-            if last_message_date > self.startup_time and text not in self.answered_question:
-                # if self.last_display != text:
-                # print "[action] last update: %s: %s" % (last_update.message.from_user.username, text)
-                logger.info("last update: %s: %s" % (last_update.message.from_user.username, text))
-                self.last_display = text
-
-            # if self.last_answered != text:
-            logger.info("Answered_question: %s", self.answered_question)
-            if last_message_date > self.startup_time and text not in self.answered_question:
-
-                # Greating
+        self.messages = filter(lambda x: x.message_id not in self.answered_messages_ids,
+                               map(lambda x: x.message, updates))
+        if len(self.messages) > 0:
+            for message in self.messages:
+                text = message.text
+            # Greating
                 greating = ['hey', 'hi', 'Hello', 'Hola']
-                if any(x.lower() in text.lower() for x in greating):
-                    self.vlim_telegram.send(chat_id, "Hello Sir")
-                    self.answered_question.append(text)
-                #
                 greating2 = ['How are you', 'How are you doing', 'How have you been']
-                if any(x.lower() in text.lower() for x in greating2):
-                    self.vlim_telegram.send(chat_id, "I am fine, Sir.")
-                    self.vlim_telegram.send(chat_id, "Thank You.")
-                    self.answered_question.append(text)
 
-                self.last_answered = text
+                if any(x.lower() in text.lower() for x in greating):
+                    self.vlim_telegram.send(message.chat.id, "Hello Sir")
+                    self.update_answered(message)
+
+                elif any(x.lower() in text.lower() for x in greating2):
+                    self.vlim_telegram.send(message.chat.id, "I am fine, Sir.")
+                    self.vlim_telegram.send(message.chat.id, "Thank You.")
+                    self.update_answered(message)
+
+                else:
+                    self.update_no_answered_questions(message)
+                    self.update_answered(message)
+                    self.vlim_telegram.send(message.chat.id, "What do you mean?, Sir.")
+
+                self.messages.remove(message)
+
+    def update_no_answered_questions(self, message):
+        self.no_answered_questions.append(message)
+        logger.info("no_answered_questions: %s" % self.no_answered_questions)
+        self.no_answered_questions_ids = self.no_answered_questions_data.read()
+        self.no_answered_questions_ids.append([message.message_id, message.text])
+        self.no_answered_questions_data.write(self.no_answered_questions_ids)
+
+    def update_answered(self, message):
+        self.answered_messages_ids.append(message.message_id)
+        self.answered_messages_ids_data.write(self.answered_messages_ids)
 
     def error_callback(self, bot, update, error):
         logger.debug(update)
         try:
             raise error
         except Unauthorized:
-            logger.info("except Unauthorized")
+            logger.error("except Unauthorized")
             bot.run()
         # remove update.message.chat_id from conversation list
         except BadRequest:
-            logger.info("except BadRequest")
+            logger.error("except BadRequest")
             bot.run()
         except TimedOut:
-            logger.info("except TimedOut")
+            logger.error("except TimedOut")
             bot.run()
         # handle slow connection problems
         except NetworkError:
-            logger.info("except NetworkError")
+            logger.error("except NetworkError")
             bot.run()
         # handle other connection problems
         except ChatMigrated as e:
-            logger.info("except ChatMigrated as e: %s" % e)
+            logger.error("except ChatMigrated as e: %s" % e)
             bot.run()
         # the chat_id of a group has changed, use e.new_chat_id instead
         except TelegramError:
-            logger.info("except TelegramError")
+            logger.error("except TelegramError")
             bot.run()
 
 
