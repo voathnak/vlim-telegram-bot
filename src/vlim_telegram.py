@@ -10,8 +10,8 @@ class VLIMTelegram:
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
         self.bot = telegram.Bot(token='322557664:AAGFsLMC9Fp78oFfB28sF99v-ZHLHfyUdIc')
 
-    def send(self, message):
-        self.bot.sendMessage(chat_id='293534239', text=message)
+    def send(self, chat_id, message):
+        self.bot.sendMessage(chat_id=chat_id, text=message)
 
     def getUpdates(self):
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)

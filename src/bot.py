@@ -52,6 +52,7 @@ class Bot:
             # print "startup_time type: %s" % type(self.startup_time)
 
             text = last_update.message.text
+            chat_id = last_update.message.chat.id
             # print "[action] last update: %s" % last_update
             if last_message_date > self.startup_time and text not in self.answered_question:
                 # if self.last_display != text:
@@ -64,13 +65,13 @@ class Bot:
                 # Greating
                 greating = ['hey', 'hi', 'Hello', 'Hola']
                 if any(x.lower() in text.lower() for x in greating):
-                    self.vlim_telegram.send("Hello Sir")
+                    self.vlim_telegram.send(chat_id, "Hello Sir")
                     self.answered_question.append(text)
                 #
                 greating2 = ['How are you', 'How are you doing', 'How have you been']
                 if any(x.lower() in text.lower() for x in greating2):
-                    self.vlim_telegram.send( "I am fine, Sir.")
-                    self.vlim_telegram.send("Thank You.")
+                    self.vlim_telegram.send(chat_id, "I am fine, Sir.")
+                    self.vlim_telegram.send(chat_id, "Thank You.")
                     self.answered_question.append(text)
 
                 self.last_answered = text
