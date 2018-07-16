@@ -3,6 +3,7 @@ import logging
 import telegram
 from telegram.error import NetworkError
 
+logger = logging.getLogger("VLIM Bot")
 
 class VLIMTelegram:
 
@@ -11,6 +12,7 @@ class VLIMTelegram:
         self.bot = telegram.Bot(token='322557664:AAGFsLMC9Fp78oFfB28sF99v-ZHLHfyUdIc')
 
     def send(self, chat_id, message):
+        logger.info("Send to : %s : %s" % (chat_id, message))
         self.bot.sendMessage(chat_id=chat_id, text=message)
 
     def getUpdates(self):
