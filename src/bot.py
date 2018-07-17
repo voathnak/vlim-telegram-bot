@@ -65,7 +65,7 @@ class Bot:
         self.no_answered_questions_data = CSVData('no_answered_messages')
         self.updates = self.vlim_telegram.getUpdates()
         self.answered_messages_ids_data.write(map(lambda x: x.message.message_id, self.updates))
-        self.answered_messages_ids = self.answered_messages_ids_data.read()
+        self.answered_messages_ids = self.answered_messages_ids_data.read_ids()
         self.messages = []
 
     def run(self):
@@ -88,7 +88,7 @@ class Bot:
                                     self.last_updated_message.chat_id),
                     self.last_updated_message.message_id, self.last_updated_message.text))
         if len(self.messages) > 0:
-            logger.info("messages: %s" % self.messages)
+            logger.info("pending reply messages: %s" % map(lambda x: x.text, self.messages))
             for message in self.messages:
                 text = message.text
             # Greating
@@ -113,7 +113,7 @@ class Bot:
 
     def update_no_answered_questions(self, message):
         self.no_answered_questions.append(message)
-        logger.info("no_answered_questions: %s" % self.no_answered_questions)
+        logger.info("no_answered_questions: %s" % message.text)
         self.no_answered_questions_ids = self.no_answered_questions_data.read()
         self.no_answered_questions_ids.append([message.message_id, message.text])
         self.no_answered_questions_data.write(self.no_answered_questions_ids)
