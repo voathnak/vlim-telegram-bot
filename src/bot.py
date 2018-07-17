@@ -50,7 +50,8 @@ class Bot:
 
     def __init__(self):
         self.last_display = ''
-        self.last_answered = ''
+        self.last_updated_message = {}
+        self.last_updated_message_id = 0
         self.startup_time = datetime.now()
         self.answered_message = []
         self.answered_messages = []
@@ -69,14 +70,25 @@ class Bot:
 
     def run(self):
         while True:
-            time.sleep(1)
+            time.sleep(2)
             self.action()
 
     def action(self):
-        updates = self.vlim_telegram.getUpdates()
+        updates = self.vlim_telegram.getUpdates(offset=-100, limit=100)
         self.messages = filter(lambda x: x.message_id not in self.answered_messages_ids,
                                map(lambda x: x.message, updates))
+        if len(updates) > 0:
+            if not self.last_updated_message_id == updates[-1].message.message_id:
+                self.last_updated_message = updates[-1].message
+                self.last_updated_message_id = updates[-1].message.message_id
+                logger.info(
+                    ">>>>> last_updated_message: %s: %s: %s, %s" % (
+                    self.last_updated_message.date,
+                    "%s %s (%s)" % (self.last_updated_message.chat.first_name, self.last_updated_message.chat.last_name,
+                                    self.last_updated_message.chat_id),
+                    self.last_updated_message.message_id, self.last_updated_message.text))
         if len(self.messages) > 0:
+            logger.info("messages: %s" % self.messages)
             for message in self.messages:
                 text = message.text
             # Greating

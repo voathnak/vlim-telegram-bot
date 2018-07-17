@@ -12,13 +12,14 @@ class VLIMTelegram:
         self.bot = telegram.Bot(token='322557664:AAGFsLMC9Fp78oFfB28sF99v-ZHLHfyUdIc')
 
     def send(self, chat_id, message):
-        logger.info("Send to : %s : %s" % (chat_id, message))
+        logger.info("<<<<< Send to : %s : %s" % (chat_id, message))
         self.bot.sendMessage(chat_id=chat_id, text=message)
 
-    def getUpdates(self):
+    def getUpdates(self, offset=None, limit=100, timeout=0, read_latency=2., allowed_updates=None):
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
         self.bot = telegram.Bot(token='322557664:AAGFsLMC9Fp78oFfB28sF99v-ZHLHfyUdIc')
+        # self.bot = telegram.Bot(token='674421101:AAHG9KOKxzJQM_46Ya_B665295yEQmVaAdI')  #vlim_test_bot
 
         contacts = []
         contact = {}
@@ -33,7 +34,8 @@ class VLIMTelegram:
         updates = []
 
         try:
-            updates = self.bot.getUpdates()
+            updates = self.bot.getUpdates(offset=offset, limit=limit, timeout=timeout, read_latency=read_latency,
+                                          allowed_updates=allowed_updates)
         except NetworkError:
             print "except NetworkError"
 
