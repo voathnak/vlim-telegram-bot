@@ -6,6 +6,8 @@ class CSVData:
 
     def __init__(self, table):
         self.table = table
+        self.path = 'vlim-telegram-bot-csv-data'
+        subprocess.call("mkdir -p %s" % self.path, shell=True)
 
     def read_ids(self):
         subprocess.call('touch %s.csv' % self.table, shell=True)

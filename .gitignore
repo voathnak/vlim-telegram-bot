@@ -2,4 +2,7 @@
 .env
 which-python.sh
 *.pyc
-vlim-bot.log
+vlim-bot.log*.csv
+**.csv
+**.log
+**.log**
