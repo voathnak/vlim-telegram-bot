@@ -3,6 +3,7 @@
 import sys
 import time
 from csv_data import CSVData
+from google_translate import GoogleTranslate
 from vlim_telegram import VLIMTelegram
 from datetime import datetime
 import logging
@@ -67,10 +68,11 @@ class Bot:
         self.answered_messages_ids_data.write(map(lambda x: x.message.message_id, self.updates))
         self.answered_messages_ids = self.answered_messages_ids_data.read_ids()
         self.messages = []
+        self.google_translate = GoogleTranslate()
 
     def run(self):
         while True:
-            time.sleep(2)
+            time.sleep(1)
             self.action()
 
     def action(self):
@@ -83,19 +85,29 @@ class Bot:
                 self.last_updated_message_id = updates[-1].message.message_id
                 logger.info(
                     ">>>>> last_updated_message: %s: %s: %s, %s" % (
-                    self.last_updated_message.date,
-                    "%s %s (%s)" % (self.last_updated_message.chat.first_name, self.last_updated_message.chat.last_name,
-                                    self.last_updated_message.chat_id),
-                    self.last_updated_message.message_id, self.last_updated_message.text))
+                        self.last_updated_message.date,
+                        "%s %s (%s)" % (
+                            self.last_updated_message.chat.first_name, self.last_updated_message.chat.last_name,
+                            self.last_updated_message.chat_id),
+                        self.last_updated_message.message_id, self.last_updated_message.text))
         if len(self.messages) > 0:
             logger.info("pending reply messages: %s" % map(lambda x: x.text, self.messages))
             for message in self.messages:
                 text = message.text
-            # Greating
+
                 greating = ['hey', 'hi', 'Hello', 'Hola']
                 greating2 = ['How are you', 'How are you doing', 'How have you been']
 
-                if any(x.lower() in text.lower() for x in greating):
+                # Command
+                if text[0] == "@":
+                    if text[1] == 't' and text[2] == ' ' and len(text[3:].split(',')) > 1:
+                        target_lang = text[3:].split(',')[0]
+                        translate_text = text[3:].split(',')[1]
+                        translated_text = self.google_translate.translate(target_lang, translate_text)
+                        self.vlim_telegram.send(message.chat.id, translated_text)
+                        self.update_answered(message)
+                # Greating
+                elif any(x.lower() in text.lower() for x in greating):
                     self.vlim_telegram.send(message.chat.id, "Hello Sir")
                     self.update_answered(message)
 
