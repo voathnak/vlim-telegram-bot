@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
-
+import re
 import sys
 import time
+from numpy import unique
 from csv_data import CSVData
 from google_translate import GoogleTranslate
 from vlim_telegram import VLIMTelegram
 from datetime import datetime
 import logging
-from telegram.error import (TelegramError, Unauthorized, BadRequest,
-                            TimedOut, ChatMigrated, NetworkError)
-
 from logging.handlers import TimedRotatingFileHandler
 
 reload(sys)
@@ -60,13 +58,13 @@ class Bot:
         self.answered_question = []
         self.question = []
         self.vlim_telegram = VLIMTelegram()
-        self.answered_messages_ids_data = CSVData('answered_messages_ids')
         self.no_answered_questions = []
-        self.no_answered_questions_ids = []
         self.no_answered_questions_data = CSVData('no_answered_messages')
+        self.no_answered_questions_ids = self.no_answered_questions_data.read_ids()
         self.updates = self.vlim_telegram.getUpdates()
-        self.answered_messages_ids_data.write(map(lambda x: x.message.message_id, self.updates))
+        self.answered_messages_ids_data = CSVData('answered_messages_ids')
         self.answered_messages_ids = self.answered_messages_ids_data.read_ids()
+        self.sean_messages_ids = unique(self.answered_messages_ids + self.no_answered_questions_ids).tolist()
         self.messages = []
         self.google_translate = GoogleTranslate()
 
@@ -77,7 +75,7 @@ class Bot:
 
     def action(self):
         updates = self.vlim_telegram.getUpdates(offset=-100, limit=100)
-        self.messages = filter(lambda x: x.message_id not in self.answered_messages_ids,
+        self.messages = filter(lambda x: x.message_id not in self.sean_messages_ids,
                                map(lambda x: x.message, updates))
         if len(updates) > 0:
             if not self.last_updated_message_id == updates[-1].message.message_id:
@@ -98,14 +96,28 @@ class Bot:
                 greating = ['hey', 'hi', 'Hello', 'Hola']
                 greating2 = ['How are you', 'How are you doing', 'How have you been']
 
+                command_pattern = '@([a-z]|[A-Z])+\s'
+                matched = re.match(command_pattern, text)
+
                 # Command
-                if text[0] == "@":
-                    if text[1] == 't' and text[2] == ' ' and len(text[3:].split(',')) > 1:
-                        target_lang = text[3:].split(',')[0]
-                        translate_text = text[3:].split(',')[1]
+                if matched:
+                    logger.debug("matched: %s" % matched.group())
+                    command = matched.group()[1:-1]
+                    searched = re.search('%s.*' % command_pattern, text).group()
+                    logger.debug("searched: %s" % searched)
+                    context = re.sub(command_pattern, "", text)
+                    logger.debug("sub: %s" % context)
+
+                    # GoogleTranslate Command
+                    if command == 't' and len(context.split(',')) > 1:
+                        target_lang = context.split(',')[0]
+                        translate_text = context.split(',')[1]
                         translated_text = self.google_translate.translate(target_lang, translate_text)
                         self.vlim_telegram.send(message.chat.id, translated_text)
                         self.update_answered(message)
+                    else:
+                        self.update_no_answered_questions(message)
+
                 # Greating
                 elif any(x.lower() in text.lower() for x in greating):
                     self.vlim_telegram.send(message.chat.id, "Hello Sir")
@@ -118,48 +130,23 @@ class Bot:
 
                 else:
                     self.update_no_answered_questions(message)
-                    self.update_answered(message)
-                    self.vlim_telegram.send(message.chat.id, "What do you mean?, Sir.")
+                    self.vlim_telegram.send(message.chat.id, "I do not know about <<%s>>, Sir." % message.text)
+                    self.vlim_telegram.send(message.chat.id, "But I will ask my creator.")
 
                 self.messages.remove(message)
+                self.sean_messages_ids = self.answered_messages_ids + self.no_answered_questions_ids
 
     def update_no_answered_questions(self, message):
         self.no_answered_questions.append(message)
         logger.info("no_answered_questions: %s" % message.text)
-        self.no_answered_questions_ids = self.no_answered_questions_data.read()
-        self.no_answered_questions_ids.append([message.message_id, message.text])
-        self.no_answered_questions_data.write(self.no_answered_questions_ids)
+        self.no_answered_questions_ids.append(message.message_id)
+        self.no_answered_questions_data_ids = self.no_answered_questions_data.read()
+        self.no_answered_questions_data_ids.append([message.message_id, message.text])
+        self.no_answered_questions_data.write(self.no_answered_questions_data_ids)
 
     def update_answered(self, message):
         self.answered_messages_ids.append(message.message_id)
         self.answered_messages_ids_data.write(self.answered_messages_ids)
-
-    def error_callback(self, bot, update, error):
-        logger.debug(update)
-        try:
-            raise error
-        except Unauthorized:
-            logger.error("except Unauthorized")
-            bot.run()
-        # remove update.message.chat_id from conversation list
-        except BadRequest:
-            logger.error("except BadRequest")
-            bot.run()
-        except TimedOut:
-            logger.error("except TimedOut")
-            bot.run()
-        # handle slow connection problems
-        except NetworkError:
-            logger.error("except NetworkError")
-            bot.run()
-        # handle other connection problems
-        except ChatMigrated as e:
-            logger.error("except ChatMigrated as e: %s" % e)
-            bot.run()
-        # the chat_id of a group has changed, use e.new_chat_id instead
-        except TelegramError:
-            logger.error("except TelegramError")
-            bot.run()
 
 
 if __name__ == "__main__":
