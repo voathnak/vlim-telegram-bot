@@ -5,6 +5,7 @@ import time
 from numpy import unique
 from csv_data import CSVData
 from google_translate import GoogleTranslate
+from nginx_config import NGINXConfig
 from vlim_telegram import VLIMTelegram
 from datetime import datetime
 import logging
@@ -67,6 +68,7 @@ class Bot:
         self.sean_messages_ids = unique(self.answered_messages_ids + self.no_answered_questions_ids).tolist()
         self.messages = []
         self.google_translate = GoogleTranslate()
+        self.nginx_config = NGINXConfig()
 
     def run(self):
         while True:
@@ -115,6 +117,15 @@ class Bot:
                         translated_text = self.google_translate.translate(target_lang, translate_text)
                         self.vlim_telegram.send(message.chat.id, translated_text)
                         self.update_answered(message)
+
+                    elif command == 'dpoint' and len(context.split('to')) > 1:
+                        server_name = context.split('to')[0]
+                        proxy_pass = context.split('to')[1]
+                        self.nginx_config.create(server_name, proxy_pass, server_name)
+                        self.update_answered(message)
+                        # print "%s -->> %s" % (source, target)
+                        pass
+
                     else:
                         self.update_no_answered_questions(message)
 
