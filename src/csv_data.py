@@ -11,7 +11,7 @@ class CSVData:
 
     def read_ids(self):
         subprocess.call('touch %s/%s.csv' % (self.path, self.table), shell=True)
-        with open('%s.csv' % self.table, 'rb') as csv_file:
+        with open('%s/%s.csv' % (self.path, self.table), 'rb') as csv_file:
             reader = csv.reader(csv_file, delimiter=' ', quotechar='|')
             ids = []
             for row in reader:
