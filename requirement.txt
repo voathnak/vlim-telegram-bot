@@ -1,11 +1,13 @@
 certifi==2018.4.16
 chardet==3.0.4
-dispatcher==1.0
 future==0.16.0
+gitdb2==2.0.4
+GitPython==2.1.11
 idna==2.7
+normalize==1.0.4
 python-telegram-bot==10.1.0
 requests==2.19.1
-telegram==0.0.1
+richenum==1.2.1
+six==1.11.0
+smmap2==2.0.4
 urllib3==1.23
-numpy==1.14.5
-
