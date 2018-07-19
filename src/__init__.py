@@ -1,2 +1,2 @@
-import bot
+import vlim_bot
 import vlim_telegram

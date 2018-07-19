@@ -37,7 +37,7 @@ class VLIMTelegram:
             updates = self.bot.getUpdates(offset=offset, limit=limit, timeout=timeout, read_latency=read_latency,
                                           allowed_updates=allowed_updates)
         except NetworkError:
-            print "except NetworkError"
+            logger.error("except NetworkError")
 
         # print len(updates)
         # print([u.message.text for u in updates])

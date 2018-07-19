@@ -2,7 +2,6 @@
 import re
 import sys
 import time
-from numpy import unique
 from csv_data import CSVData
 from google_translate import GoogleTranslate
 from nginx_config import NGINXConfig
@@ -11,8 +10,8 @@ from datetime import datetime
 import logging
 from logging.handlers import TimedRotatingFileHandler
 
-reload(sys)
-sys.setdefaultencoding('utf8')
+# reload(sys)
+# sys.setdefaultencoding('utf8')
 
 FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(message)s")
 LOG_FILE = "vlim-bot.log"
@@ -43,10 +42,10 @@ def get_logger(logger_name):
 logger = get_logger("VLIM Bot")
 
 logger.info("Log Level INFO")
-print logger.handlers
+# print logger.handlers
 
 
-class Bot:
+class VLIMBot:
 
     def __init__(self):
         self.last_display = ''
@@ -65,7 +64,7 @@ class Bot:
         self.updates = self.vlim_telegram.getUpdates()
         self.answered_messages_ids_data = CSVData('answered_messages_ids')
         self.answered_messages_ids = self.answered_messages_ids_data.read_ids()
-        self.sean_messages_ids = unique(self.answered_messages_ids + self.no_answered_questions_ids).tolist()
+        self.sean_messages_ids = list(set(self.answered_messages_ids + self.no_answered_questions_ids))
         self.messages = []
         self.google_translate = GoogleTranslate()
         self.nginx_config = NGINXConfig()
@@ -77,8 +76,12 @@ class Bot:
 
     def action(self):
         updates = self.vlim_telegram.getUpdates(offset=-100, limit=100)
-        self.messages = filter(lambda x: x.message_id not in self.sean_messages_ids,
-                               map(lambda x: x.message, updates))
+        update_messages = list(map(lambda y: y.message, updates))
+
+        # self.messages = list(filter(lambda x: x.message_id not in self.sean_messages_ids, update_messages))
+        # for update in updates:
+        #     print(update)
+
         if len(updates) > 0:
             if not self.last_updated_message_id == updates[-1].message.message_id:
                 self.last_updated_message = updates[-1].message
@@ -90,9 +93,10 @@ class Bot:
                             self.last_updated_message.chat.first_name, self.last_updated_message.chat.last_name,
                             self.last_updated_message.chat_id),
                         self.last_updated_message.message_id, self.last_updated_message.text))
-        if len(self.messages) > 0:
-            logger.info("pending reply messages: %s" % map(lambda x: x.text, self.messages))
-            for message in self.messages:
+
+        # logger.info("pending reply messages: %s" % map(lambda x: x.text, self.messages))
+        for message in update_messages:
+            if message and message.message_id not in self.sean_messages_ids:
                 text = message.text
 
                 greating = ['hey', 'hi', 'Hello', 'Hola']
@@ -144,7 +148,7 @@ class Bot:
                     self.vlim_telegram.send(message.chat.id, "I do not know about <<%s>>, Sir." % message.text)
                     self.vlim_telegram.send(message.chat.id, "But I will ask my creator.")
 
-                self.messages.remove(message)
+                    self.sean_messages_ids.append(message)
                 self.sean_messages_ids = self.answered_messages_ids + self.no_answered_questions_ids
 
     def update_no_answered_questions(self, message):
@@ -161,5 +165,5 @@ class Bot:
 
 
 if __name__ == "__main__":
-    bot = Bot()
-    bot.run()
+    vlim_bot = VLIMBot()
+    vlim_bot.run()

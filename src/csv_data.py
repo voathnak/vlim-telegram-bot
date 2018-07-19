@@ -11,7 +11,7 @@ class CSVData:
 
     def read_ids(self):
         subprocess.call('touch %s/%s.csv' % (self.path, self.table), shell=True)
-        with open('%s/%s.csv' % (self.path, self.table), 'rb') as csv_file:
+        with open('%s/%s.csv' % (self.path, self.table), 'rt') as csv_file:
             reader = csv.reader(csv_file, delimiter=' ', quotechar='|')
             ids = []
             for row in reader:
@@ -20,7 +20,7 @@ class CSVData:
 
     def read(self):
         subprocess.call('touch %s/%s.csv' % (self.path, self.table), shell=True)
-        with open('%s/%s.csv' % (self.path, self.table), 'rb') as csv_file:
+        with open('%s/%s.csv' % (self.path, self.table), 'rt') as csv_file:
             reader = csv.reader(csv_file, delimiter=' ', quotechar='|')
             data = []
             for row in reader:
@@ -33,7 +33,7 @@ class CSVData:
         return data
 
     def write(self, rows):
-        with open('%s/%s.csv' % (self.path, self.table), 'wb') as csv_file:
+        with open('%s/%s.csv' % (self.path, self.table), 'wt') as csv_file:
             writer = csv.writer(csv_file, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
             for row in rows:
                 if type(row) is not list:

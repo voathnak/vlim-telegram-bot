@@ -3,9 +3,9 @@ import logging
 
 from telegram.error import NetworkError
 
-import bot
+import vlim_bot
 
-logger = bot.get_logger("VLIM Bot")
+logger = vlim_bot.get_logger("VLIM Bot")
 # logger.setLevel(logging.INFO)
 # logger.addHandler(logging.StreamHandler())
 
