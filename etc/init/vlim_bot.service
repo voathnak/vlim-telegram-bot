@@ -3,7 +3,7 @@ Description=VLIM Telegram Bot
 
 [Service]
 Type=simple
-ExecStart=/projects/vlim-telegram-bot.env/bin/python /projects/vlim-telegram-bot/src/bot.py
+ExecStart=/projects/vlim-telegram-bot.env/bin/python /projects/vlim-telegram-bot/src/vlim_bot.py
 
 [Install]
 WantedBy=multi-user.target
