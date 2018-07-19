@@ -28,9 +28,9 @@ class NGINXConfig:
             'echo "                                                   " >> %s' % file,
             'echo "  location / {                                     " >> %s' % file,
             'echo "   proxy_pass              %s;                     " >> %s' % (proxy_pass, file),
-            'echo "   proxy_set_header        Host $host;             " >> %s' % file,
-            'echo "   proxy_set_header        X-Real-IP $remote_addr; " >> %s' % file,
-            'echo "   proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for; " >> %s' % file,
+            'echo "   proxy_set_header        Host \$host;             " >> %s' % file,
+            'echo "   proxy_set_header        X-Real-IP \$remote_addr; " >> %s' % file,
+            'echo "   proxy_set_header        X-Forwarded-For \$proxy_add_x_forwarded_for; " >> %s' % file,
             'echo "   proxy_connect_timeout   350;                                        " >> %s' % file,
             'echo "   proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;" >> %s' %
             file,
