@@ -1,23 +1,32 @@
-from models import db
 from pony.orm import *
+
+from models import db
 
 
 class Partner(db.Entity):
     _table_ = 'partner'
+
     id = PrimaryKey(int, auto=True)
-    name = Optional(str)
-    fist_name = Required(str)
+    user_id = Required(int, unique=True)
+
+    name = Required(str)
+    first_name = Required(str)
     last_name = Required(str)
     language_code = Required(str)
     honorific_address = Required(str)
+    full_name = Required(str)
+    gender = Optional(str)
 
-    @db_session
-    def tg_create(self, first_name, last_name, name, **kwargs):
-        full_name = kwargs['full_name'] if 'full_name' in kwargs else " "
-        Partner(id, first_name, last_name, name, full_name)
+    # def save(self, tg_user):
+    #     self.tg_create(id=tg_user.id, first_name=tg_user.first_name, last_name=tg_user.last_name, name=tg_user.name,
+    #                    full_name=tg_user.full_name)
+    #
+    # @db_session
+    # def tg_create(self, user_id, first_name, last_name, name, **kwargs):
+    #     full_name = kwargs['full_name'] if 'full_name' in kwargs else " "
+    #     partner = Partner(user_id=user_id, first_name=first_name, last_name=last_name, name=name, full_name=full_name)
 
 
-db.generate_mapping(create_tables=True)
 
 #
 #
