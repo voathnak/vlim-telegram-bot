@@ -12,7 +12,7 @@ import logging
 from pony.orm import *
 from csv_data import CSVData
 from google_translate import GoogleTranslate
-from models.user import User
+from models.vxdb import VXUser
 from nginx_config import NGINXConfig
 from vlim_telegram import VLIMTelegram
 
@@ -109,11 +109,11 @@ class VLIMBot:
             if message and message.text and message.message_id not in self.sean_messages_ids:
                 text = message.text
                 tg_user = message.from_user
-                user = User.get(user_id=tg_user.id)
+                user = VXUser.get(telegram_user_id=tg_user.id)
                 if user is None:
-                    user = User(user_id=tg_user.id, first_name=tg_user.first_name, last_name=tg_user.last_name,
-                                name=tg_user.name, full_name=tg_user.full_name,
-                                language_code=tg_user.language_code, honorific_address='Sir')
+                    user = VXUser(telegram_user_id=tg_user.id, first_name=tg_user.first_name, last_name=tg_user.last_name,
+                                  name=tg_user.name, full_name=tg_user.full_name,
+                                  language_code=tg_user.language_code, honorific_address='Sir')
 
                 greating1 = ['hey', 'hi']
                 greating2 = ['Hello', 'Hola']
