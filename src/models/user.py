@@ -1,14 +1,16 @@
+import logging
+
 from pony.orm import *
 
-from models import db
+logger = logging.getLogger("VLIM Bot")
 
+db = Database()
 
-class Partner(db.Entity):
+class User(db.Entity):
     _table_ = 'partner'
 
     id = PrimaryKey(int, auto=True)
     user_id = Required(int, unique=True)
-
     name = Required(str)
     first_name = Required(str)
     last_name = Required(str)
@@ -17,17 +19,13 @@ class Partner(db.Entity):
     full_name = Required(str)
     gender = Optional(str)
 
-    # def save(self, tg_user):
-    #     self.tg_create(id=tg_user.id, first_name=tg_user.first_name, last_name=tg_user.last_name, name=tg_user.name,
-    #                    full_name=tg_user.full_name)
-    #
-    # @db_session
-    # def tg_create(self, user_id, first_name, last_name, name, **kwargs):
-    #     full_name = kwargs['full_name'] if 'full_name' in kwargs else " "
-    #     partner = Partner(user_id=user_id, first_name=first_name, last_name=last_name, name=name, full_name=full_name)
 
+logger.info("Partner Model Difined")
+db.bind(provider='postgres', user='vlimbot', password='asdfghjk', host='127.0.0.1', database='vlim_bot')
+logger.info("Pony DB Bind")
 
-
+db.generate_mapping(create_tables=True)
+logger.info("DB Generated")
 #
 #
 #

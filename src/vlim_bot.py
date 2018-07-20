@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import re
+import subprocess
 import sys
 from datetime import datetime
 from logging.handlers import TimedRotatingFileHandler
@@ -11,15 +12,17 @@ import logging
 from pony.orm import *
 from csv_data import CSVData
 from google_translate import GoogleTranslate
-from models.partner import Partner
+from models.user import User
 from nginx_config import NGINXConfig
 from vlim_telegram import VLIMTelegram
 
-# reload(sys)
-# sys.setdefaultencoding('utf8')
 
 FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(message)s")
-LOG_FILE = "vlim-bot.log"
+log_path = 'logs'
+
+subprocess.call("mkdir -p %s" % log_path, shell=True)
+
+LOG_FILE = "%s/vlim-bot.log" % log_path
 
 
 def get_console_handler():
@@ -103,37 +106,37 @@ class VLIMBot:
 
         # logger.info("pending reply messages: %s" % map(lambda x: x.text, self.messages))
         for message in update_messages:
-            if message and message.message_id not in self.sean_messages_ids:
+            if message and message.text and message.message_id not in self.sean_messages_ids:
                 text = message.text
                 tg_user = message.from_user
-                partner = Partner.get(user_id=tg_user.id)
-                if partner is None:
-                    partner = Partner(user_id=tg_user.id, first_name=tg_user.first_name, last_name=tg_user.last_name,
-                                      name=tg_user.name, full_name=tg_user.full_name,
-                                      language_code=tg_user.language_code, honorific_address='Sir')
+                user = User.get(user_id=tg_user.id)
+                if user is None:
+                    user = User(user_id=tg_user.id, first_name=tg_user.first_name, last_name=tg_user.last_name,
+                                name=tg_user.name, full_name=tg_user.full_name,
+                                language_code=tg_user.language_code, honorific_address='Sir')
 
                 greating1 = ['hey', 'hi']
                 greating2 = ['Hello', 'Hola']
                 greating3 = ['How are you', 'How are you doing', 'How have you been']
 
-                honorific_address_men = [
-                    "I am a men",
-                    "I'm a men",
+                honorific_address_man = [
+                    "I am a man",
+                    "I'm a man",
                     "I am a boy",
                     "I'm a boy",
-                    "I am not a women",
-                    "I'm not a women",
+                    "I am not a woman",
+                    "I'm not a woman",
                     "I am not a girl",
                     "I'm not a girl",
                 ]
 
-                honorific_address_women = [
-                    "I am a women",
-                    "I'm a women",
+                honorific_address_woman = [
+                    "I am a woman",
+                    "I'm a woman",
                     "I am a girl",
                     "I'm a girl",
-                    "I am not a men",
-                    "I'm not a men",
+                    "I am not a man",
+                    "I'm not a man",
                     "I am not a boy",
                     "I'm not a boy",
                 ]
@@ -171,34 +174,34 @@ class VLIMBot:
 
                 # Greating
                 elif any(x.lower() in text.lower() for x in greating1):
-                    self.vlim_telegram.send(message.chat.id, "Hello, %s." % partner.first_name)
+                    self.vlim_telegram.send(message.chat.id, "Hello, %s." % user.first_name)
                     self.update_answered(message)
 
                 elif any(x.lower() in text.lower() for x in greating2):
-                    self.vlim_telegram.send(message.chat.id, "Hello, %s." % partner.honorific_address)
+                    self.vlim_telegram.send(message.chat.id, "Hello, %s." % user.honorific_address)
                     self.update_answered(message)
 
                 elif any(x.lower() in text.lower() for x in greating3):
-                    self.vlim_telegram.send(message.chat.id, "I am fine, %s." % partner.honorific_address)
-                    self.vlim_telegram.send(message.chat.id, "Thank You, %s." % partner.honorific_address)
+                    self.vlim_telegram.send(message.chat.id, "I am fine, %s." % user.honorific_address)
+                    self.vlim_telegram.send(message.chat.id, "Thank You, %s." % user.honorific_address)
                     self.update_answered(message)
 
-                elif any(x.lower() in text.lower() for x in honorific_address_men):
-                    partner.honorific_address = "Sir"
-                    self.vlim_telegram.send(message.chat.id, "Okay, , %s." % partner.honorific_address)
+                elif any(x.lower() in text.lower() for x in honorific_address_man):
+                    user.honorific_address = "Sir"
+                    self.vlim_telegram.send(message.chat.id, "Okay, %s." % user.honorific_address)
                     self.vlim_telegram.send(message.chat.id, "Thank You for Letting me know.")
                     self.update_answered(message)
 
-                elif any(x.lower() in text.lower() for x in honorific_address_women):
-                    partner.honorific_address = "Madam"
-                    self.vlim_telegram.send(message.chat.id, "Okay, , %s." % partner.honorific_address)
+                elif any(x.lower() in text.lower() for x in honorific_address_woman):
+                    user.honorific_address = "Madam"
+                    self.vlim_telegram.send(message.chat.id, "Okay, %s." % user.honorific_address)
                     self.vlim_telegram.send(message.chat.id, "Thank You for Letting me know.")
                     self.update_answered(message)
 
                 else:
                     self.update_no_answered_questions(message)
                     self.vlim_telegram.send(message.chat.id, "I do not know about <<%s>>, %s." % (
-                        message.text, partner.honorific_address))
+                        message.text, user.honorific_address))
                     self.vlim_telegram.send(message.chat.id, "But I will ask my creator.")
 
                     self.sean_messages_ids.append(message)
