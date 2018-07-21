@@ -10,7 +10,7 @@ import time
 import logging
 
 from pony.orm import *
-from csv_data import CSVData
+# from csv_data import CSVData
 from google_translate import GoogleTranslate
 from models.vxdb import VXUser
 from models.vxmessage import VXMessage
@@ -68,12 +68,12 @@ class VLIMBot:
         self.question = []
         self.vlim_telegram = VLIMTelegram()
         self.no_answered_questions = []
-        self.no_answered_questions_data = CSVData('no_answered_messages')
-        self.no_answered_questions_ids = self.no_answered_questions_data.read_ids()
-        self.no_answered_questions_data_ids = self.no_answered_questions_data.read()
+        # self.no_answered_questions_data = CSVData('no_answered_messages')
+        # self.no_answered_questions_ids = self.no_answered_questions_data.read_ids()
+        # self.no_answered_questions_data_ids = self.no_answered_questions_data.read()
         self.updates = self.vlim_telegram.getUpdates()
-        self.answered_messages_ids_data = CSVData('answered_messages_ids')
-        self.answered_messages_ids = self.answered_messages_ids_data.read_ids()
+        # self.answered_messages_ids_data = CSVData('answered_messages_ids')
+        # self.answered_messages_ids = self.answered_messages_ids_data.read_ids()
         self.messages = []
         self.google_translate = GoogleTranslate()
         self.nginx_config = NGINXConfig()
