@@ -7,15 +7,18 @@ from models.vxuser import VXUser
 
 
 class VXMessage(db.Entity):
-    _table_ = 'message'
+    _table_ = 'vx_message'
 
     id = PrimaryKey(int, auto=True)
+    message_id = Required(int, unique=True)
+    user_id = Required(VXUser)
+    chat_id = Required(int)
     date = Required(datetime)
     text = Required(LongStr)
-    user_id = Required(str)
-    partner_id = Required(VXUser)
+    state = Required(str, default="0")
+    read = Optional(bool)
 
     @db_session
-    def create(self, m):
-        return VXMessage(m.message_id, m.date, m.text, m.from_user.id)
+    def create(self, message):
+        return VXMessage(user_id=message.message_id, date=message.date, text=message.text, partner_id=message.from_user.id)
 

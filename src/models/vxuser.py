@@ -4,7 +4,7 @@ from models import db
 
 
 class VXUser(db.Entity):
-    _table_ = 'partner'
+    _table_ = 'vx_user'
 
     id = PrimaryKey(int, auto=True)
     telegram_user_id = Required(int, unique=True)

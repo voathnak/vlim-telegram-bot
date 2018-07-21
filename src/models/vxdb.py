@@ -3,6 +3,7 @@ from pony.orm import *
 from models import db
 from models.vxuser import VXUser
 from models.vxmessage import VXMessage
+# from models.vxsystem_parameter import VXSystemParameter
 
 logger = logging.getLogger("VLIM Bot")
 
