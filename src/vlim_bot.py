@@ -234,6 +234,8 @@ class VLIMBot:
 
                     else:
                         message.state = "no_answer"
+                        self.vlim_telegram.send(message.chat_id, "I do not know about <<%s>>, %s." % (
+                            message.text, user.honorific_address))
                         self.vlim_telegram.send(message.user_id.telegram_user_id, "But I will ask my creator.")
 
                     self.last_updated_message_id = message.message_id
