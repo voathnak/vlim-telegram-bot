@@ -50,7 +50,18 @@ def get_logger(logger_name):
 logger = get_logger("VLIM Bot")
 
 logger.info("Log Level INFO")
+
+
 # print logger.handlers
+# Todo: what can i say?
+# Todo: what can i do?
+# Todo: currency exchage
+# Todo:
+# Todo: make a release version
+# Todo: make an install script run successfully
+# Todo: possibly answer
+# Todo:
+# Todo:
 
 
 class VLIMBot:
@@ -77,6 +88,7 @@ class VLIMBot:
         self.messages = []
         self.google_translate = GoogleTranslate()
         self.nginx_config = NGINXConfig()
+        self.silence = False
 
         updates = self.vlim_telegram.getUpdates(offset=-100, limit=100)
 
@@ -206,37 +218,48 @@ class VLIMBot:
                             # print "%s -->> %s" % (source, target)
                             pass
 
+                        elif command == 'silence' and len(context) == 1:
+                            if context == "1":
+                                self.silence = True
+                            elif context == "0":
+                                self.silence = False
+                            self.vlim_telegram.send(message.user_id.telegram_user_id,
+                                                    "Roger that, %s." % user.honorific_address)
+
                         else:
                             message.state = "no_answer"
+                    elif not self.silence:
+                        # Greating
+                        if any(x.lower() in text.lower() for x in greating1):
+                            self.vlim_telegram.send(message.user_id.telegram_user_id, "Hello, %s." % user.first_name)
 
-                    # Greating
-                    elif any(x.lower() in text.lower() for x in greating1):
-                        self.vlim_telegram.send(message.user_id.telegram_user_id, "Hello, %s." % user.first_name)
+                        elif any(x.lower() in text.lower() for x in greating2):
+                            self.vlim_telegram.send(message.user_id.telegram_user_id,
+                                                    "Hello, %s." % user.honorific_address)
 
-                    elif any(x.lower() in text.lower() for x in greating2):
-                        self.vlim_telegram.send(message.user_id.telegram_user_id, "Hello, %s." % user.honorific_address)
+                        elif any(x.lower() in text.lower() for x in greating3):
+                            self.vlim_telegram.send(message.user_id.telegram_user_id,
+                                                    "I am fine, %s." % user.honorific_address)
+                            self.vlim_telegram.send(message.user_id.telegram_user_id,
+                                                    "Thank You, %s." % user.honorific_address)
 
-                    elif any(x.lower() in text.lower() for x in greating3):
-                        self.vlim_telegram.send(message.user_id.telegram_user_id,
-                                                "I am fine, %s." % user.honorific_address)
-                        self.vlim_telegram.send(message.user_id.telegram_user_id,
-                                                "Thank You, %s." % user.honorific_address)
+                        elif any(x.lower() in text.lower() for x in honorific_address_man):
+                            user.honorific_address = "Sir"
+                            self.vlim_telegram.send(message.user_id.telegram_user_id,
+                                                    "Okay, %s." % user.honorific_address)
+                            self.vlim_telegram.send(message.user_id.telegram_user_id, "Thank You for Letting me know.")
 
-                    elif any(x.lower() in text.lower() for x in honorific_address_man):
-                        user.honorific_address = "Sir"
-                        self.vlim_telegram.send(message.user_id.telegram_user_id, "Okay, %s." % user.honorific_address)
-                        self.vlim_telegram.send(message.user_id.telegram_user_id, "Thank You for Letting me know.")
+                        elif any(x.lower() in text.lower() for x in honorific_address_woman):
+                            user.honorific_address = "Madam"
+                            self.vlim_telegram.send(message.user_id.telegram_user_id,
+                                                    "Okay, %s." % user.honorific_address)
+                            self.vlim_telegram.send(message.user_id.telegram_user_id, "Thank You for Letting me know.")
 
-                    elif any(x.lower() in text.lower() for x in honorific_address_woman):
-                        user.honorific_address = "Madam"
-                        self.vlim_telegram.send(message.user_id.telegram_user_id, "Okay, %s." % user.honorific_address)
-                        self.vlim_telegram.send(message.user_id.telegram_user_id, "Thank You for Letting me know.")
-
-                    else:
-                        message.state = "no_answer"
-                        self.vlim_telegram.send(message.chat_id, "I do not know about <<%s>>, %s." % (
-                            message.text, user.honorific_address))
-                        self.vlim_telegram.send(message.user_id.telegram_user_id, "But I will ask my creator.")
+                        else:
+                            message.state = "no_answer"
+                            self.vlim_telegram.send(message.chat_id, "I do not know about <<%s>>, %s." % (
+                                message.text, user.honorific_address))
+                            self.vlim_telegram.send(message.user_id.telegram_user_id, "But I will ask my creator.")
 
                     self.last_updated_message_id = message.message_id
                     message.read = True
