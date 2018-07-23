@@ -14,3 +14,4 @@ richenum==1.2.1
 six==1.11.0
 smmap2==2.0.4
 urllib3==1.23
+google-cloud-translate==1.3.1

@@ -1,24 +1,18 @@
-import json
-
-import requests
+from google.cloud import translate
 
 
 class GoogleTranslate:
 
     def __init__(self):
-        pass
+        self.translate_client = translate.Client.from_service_account_json('/vlim-telegram-bot-secret-key.json')
 
-    def translate(self, target, source_word, source='auto'):
+    def translate(self, target, source_word):
         shortcut = {
             'ch': 'zh-CN',
             'kh': 'km',
         }
         if target in shortcut:
             target = shortcut[target]
-        r = requests.get("https://translate.googleapis.com/translate_a/single?client=gtx&sl=%s&tl=%s&dt=t&q=%s" % (
-        source, target, source_word))
-        r.encoding = 'utf-8'
-        text = r.text.encode('utf-8')
-        data = json.loads(text)
-        return data[0][0][0]
-
+        translation = self.translate_client.translate(source_word, target_language=target)
+        # noinspection PyTypeChecker
+        return translation['translatedText']
