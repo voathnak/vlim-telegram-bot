@@ -11,6 +11,7 @@ import logging
 
 from pony.orm import *
 # from csv_data import CSVData
+from telegram.error import NetworkError
 from google_translate import GoogleTranslate
 from models.vxdb import VXUser
 from models.vxmessage import VXMessage
@@ -92,7 +93,10 @@ class VLIMBot:
 
         updates = self.vlim_telegram.getUpdates(offset=-100, limit=100)
 
-        self.last_updated_id = updates[-1].update_id
+        if len(updates) > 0:
+            self.last_updated_id = updates[-1].update_id
+        else:
+            self.last_updated_id = 0
 
         read_updates = list(filter(
             lambda x: x.message and x.message.message_id and x.message.date and x.message.text and x.message.from_user,
@@ -108,6 +112,17 @@ class VLIMBot:
             time.sleep(1)
             try:
                 self.action()
+
+            except NetworkError as e:
+                logger.warning(e)
+
+            except OperationalError as e:
+                logger.info(e)
+
+            except KeyboardInterrupt:
+
+                logger.info("You have stopped the programm.")
+
             except Exception as e:
                 logger.error(e)
 
@@ -152,6 +167,7 @@ class VLIMBot:
         if len(update_messages):
             self.update_user_database(new_updates)
             self.update_message_database(new_updates)
+            self.last_updated_id = new_updates[-1].update_id
 
             for message in update_messages:
                 text = message.text
@@ -271,5 +287,10 @@ class VLIMBot:
 
 
 if __name__ == "__main__":
-    vlim_bot = VLIMBot()
-    vlim_bot.run()
+    try:
+        vlim_bot = VLIMBot()
+        vlim_bot.run()
+    except Exception as e:
+        logger.error(e)
+
+
