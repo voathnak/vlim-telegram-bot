@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import linecache
 import re
 import subprocess
 import sys
@@ -107,6 +107,16 @@ class VLIMBot:
         logger.info("Updating existing messages into database...")
         self.update_message_database(read_updates, read=True)
 
+    def PrintException(self):
+        exc_type, exc_obj, tb = sys.exc_info()
+        f = tb.tb_frame
+        lineno = tb.tb_lineno
+        filename = f.f_code.co_filename
+        linecache.checkcache(filename)
+        line = linecache.getline(filename, lineno, f.f_globals)
+        print
+        'EXCEPTION IN ({}, LINE {} "{}"): {}'.format(filename, lineno, line.strip(), exc_obj)
+
     def run(self):
         while True:
             time.sleep(1)
@@ -124,6 +134,7 @@ class VLIMBot:
                 logger.info("You have stopped the programm.")
 
             except Exception as e:
+                self.PrintException()
                 logger.error(e)
 
     @db_session
@@ -141,7 +152,7 @@ class VLIMBot:
 
             if "read" in kwargs and kwargs["read"] is True:
                 message.read = True
-
+        logger.info("Done update_message_database.")
         commit()
 
     @db_session
@@ -155,6 +166,7 @@ class VLIMBot:
                               name=tg_user.name, full_name=tg_user.full_name,
                               honorific_address='Sir')
                 logger.info("Added User: %s" % user.first_name)
+        logger.info("Done update_user_database.")
         commit()
 
     @db_session
