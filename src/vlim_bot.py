@@ -106,7 +106,10 @@ class VLIMBot:
     def run(self):
         while True:
             time.sleep(1)
-            self.action()
+            try:
+                self.action()
+            except Exception as e:
+                logger.error(e)
 
     @db_session
     def update_message_database(self, updates, **kwargs):
@@ -115,7 +118,7 @@ class VLIMBot:
         for tg_message in messages:
             message = VXMessage.get(message_id=tg_message.message_id)
 
-            if message is None:
+            if message is None and tg_message.text:
                 user = VXUser.get(telegram_user_id=tg_message.from_user.id)
                 message = VXMessage(message_id=tg_message.message_id, date=tg_message.date,
                                     text=tg_message.text, chat_id=tg_message.chat_id,
@@ -135,7 +138,7 @@ class VLIMBot:
             if user is None:
                 user = VXUser(telegram_user_id=tg_user.id, first_name=tg_user.first_name, last_name=tg_user.last_name,
                               name=tg_user.name, full_name=tg_user.full_name,
-                              language_code=tg_user.language_code, honorific_address='Sir')
+                              honorific_address='Sir')
                 logger.info("Added User: %s" % user.first_name)
         commit()
 

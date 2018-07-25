@@ -11,7 +11,7 @@ class VXUser(db.Entity):
     name = Required(str)
     first_name = Required(str)
     last_name = Required(str)
-    language_code = Required(str)
+    language_code = Optional(str)
     honorific_address = Required(str)
     full_name = Required(str)
     gender = Optional(str)
