@@ -231,6 +231,8 @@ class VLIMBot:
                         "I'm not a man",
                         "I am not a boy",
                         "I'm not a boy",
+                        "I'm a lady",
+                        "I am a lady"
                     ]
 
                     # ^(\/\.([a-z]|[A-Z])+\s.*)|(\.([a-z]|[A-Z])+\s.*)$
