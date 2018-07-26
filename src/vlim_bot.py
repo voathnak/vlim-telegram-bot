@@ -107,15 +107,14 @@ class VLIMBot:
         logger.info("Updating existing messages into database...")
         self.update_message_database(read_updates, read=True)
 
-    def PrintException(self):
+    def print_exception(self):
         exc_type, exc_obj, tb = sys.exc_info()
         f = tb.tb_frame
         lineno = tb.tb_lineno
         filename = f.f_code.co_filename
         linecache.checkcache(filename)
         line = linecache.getline(filename, lineno, f.f_globals)
-        print
-        'EXCEPTION IN ({}, LINE {} "{}"): {}'.format(filename, lineno, line.strip(), exc_obj)
+        print('EXCEPTION IN ({}, LINE {} "{}"): {}'.format(filename, lineno, line.strip(), exc_obj))
 
     def run(self):
         while True:
@@ -123,19 +122,19 @@ class VLIMBot:
             try:
                 self.action()
 
-            except NetworkError as e:
-                logger.warning(e)
+            except NetworkError as ne:
+                logger.warning(ne)
 
-            except OperationalError as e:
-                logger.info(e)
+            except OperationalError as oe:
+                logger.info(oe)
 
             except KeyboardInterrupt:
 
                 logger.info("You have stopped the programm.")
 
-            except Exception as e:
-                self.PrintException()
-                logger.error(e)
+            except Exception as ec:
+                self.print_exception()
+                logger.error(ec)
 
     @db_session
     def update_message_database(self, updates, **kwargs):
@@ -171,9 +170,20 @@ class VLIMBot:
 
     @db_session
     def action(self):
+
+        def validate_update(update):
+            if \
+                    update.update_id > self.last_updated_id and \
+                    update.message and update.message.message_id and \
+                    update.message.text and \
+                    update.message.message_id > self.last_updated_message_id:
+                return True
+
+            else:
+                return False
+
         updates = self.vlim_telegram.getUpdates(offset=-100, limit=100)
-        new_updates = list(filter(lambda x: x.update_id > self.last_updated_id and x.message and x.message.message_id
-                                            and x.message.message_id > self.last_updated_message_id, updates))
+        new_updates = list(filter(lambda x: validate_update(x), updates))
 
         update_messages = list(map(lambda y: y.message, new_updates))
         if len(update_messages):
@@ -181,13 +191,13 @@ class VLIMBot:
             self.update_message_database(new_updates)
             self.last_updated_id = new_updates[-1].update_id
 
-            for message in update_messages:
-                text = message.text
-                user = VXUser.get(telegram_user_id=message.from_user.id)
-                message = VXMessage.get(message_id=message.message_id)
+            for update_message in update_messages:
+                text = update_message.text
+                user = VXUser.get(telegram_user_id=update_message.from_user.id)
+                message = VXMessage.get(message_id=update_message.message_id)
                 if message is None:
-                    message = VXMessage(message_id=message.message_id, date=message.date,
-                                        text=message.text, chat_id=message.chat_id,
+                    message = VXMessage(message_id=update_message.message_id, date=update_message.date,
+                                        text=update_message.text, chat_id=update_message.chat_id,
                                         user_id=user)
 
                 if not message.read:
@@ -304,5 +314,3 @@ if __name__ == "__main__":
         vlim_bot.run()
     except Exception as e:
         logger.error(e)
-
-
