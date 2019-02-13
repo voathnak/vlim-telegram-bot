@@ -12,7 +12,7 @@ import logging
 from pony.orm import *
 # from csv_data import CSVData
 from telegram.error import NetworkError
-from google_translate import GoogleTranslate
+# from google_translate import GoogleTranslate
 from models.vxdb import VXUser
 from models.vxmessage import VXMessage
 from nginx_config import NGINXConfig
@@ -87,7 +87,7 @@ class VLIMBot:
         # self.answered_messages_ids_data = CSVData('answered_messages_ids')
         # self.answered_messages_ids = self.answered_messages_ids_data.read_ids()
         self.messages = []
-        self.google_translate = GoogleTranslate()
+        # self.google_translate = GoogleTranslate()
         self.nginx_config = NGINXConfig()
         self.silence = False
 
