@@ -9,7 +9,7 @@ pony==0.7.3
 psycopg2==2.7.5
 psycopg2-binary==2.7.5
 python-telegram-bot==10.1.0
-requests==2.19.1
+requests>=2.20.0
 richenum==1.2.1
 six==1.11.0
 smmap2==2.0.4
